@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>MockPlatform</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="css/mockplatform.css" rel="stylesheet" media="screen" />
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script type="text/javascript" src="js/local_settings.js"></script> <!-- Make your own, it's being ignored by GIT -->
+        <script type="text/javascript" src="js/utils.js"></script>
+        <script type="text/javascript" src="js/client.js"></script>
+        
+    </head>
+    <body>
+        <div>This is a testbed for the DSS and Weather microservices</div>
+        <div id="app">
+            <h2>List of DSS models</h2>
+            <ul class="DSSModelListItem">
+                <template v-for="DSS in DSSList">
+                <li v-for="DSS_model in DSS.DSS_models" v-on:click="currentModel = DSS_model; renderNamesFromEPPOCodes(DSS_model); currentModelVisible = true">{{DSS_model.DSS_model_name}}</li>
+                </template>
+            </ul>
+            <div v-if="currentModelVisible">
+                <h2>{{ currentModel.DSS_model_name }}</h2>
+                <h3>Description</h3>
+                <div id='cropsAndPests'></div>
+                <p>{{currentModel.Description}}</p>
+                <p><a :href="currentModel.Description_URL" target="new">Read more </a></p>
+                <div id="runModelForm"></div>
+            </div>
+        </div>
+
+        <h3>TODO: Be able to formulate a weather data request. Get a response from a datasource</h3>
+
+        
+    </body>
+    <script type="text/javascript">
+       init();
+    </script>
+</html>
