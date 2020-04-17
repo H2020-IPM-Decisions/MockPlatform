@@ -1,8 +1,20 @@
 <!DOCTYPE html>
 <!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
+  Copyright (c) 2020 NIBIO <http://www.nibio.no/>. 
+  
+  This file is part of MockPlatform.
+  MockPlatform is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  MockPlatform is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with MockPlatform.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <html>
     <head>
@@ -10,36 +22,67 @@ and open the template in the editor.
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="css/mockplatform.css" rel="stylesheet" media="screen" />
+
+        <!-- ALPACA FORMS. REQUIRES JQUERY AND HANDLEBARS (?)-->
+        <!--script type="text/javascript" src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.js"></script>
+        <link type="text/css" href="//cdn.jsdelivr.net/npm/alpaca@1.5.27/dist/alpaca/bootstrap/alpaca.min.css" rel="stylesheet" />
+        <script type="text/javascript" src="//cdn.jsdelivr.net/npm/alpaca@1.5.27/dist/alpaca/bootstrap/alpaca.js"></script-->
+        
+        <!-- vue.js -->
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        
+        <!-- vue-json-schema-form and dependencies (Buefy and AJV) -->
+        <link rel="stylesheet" href="js/vue-json-schema-form-master/dist/vue-json-schema-form.css"/>
+        <link rel="stylesheet" href="https://unpkg.com/buefy/dist/buefy.min.css"/>
+        <script src="https://unpkg.com/buefy/dist/buefy.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/6.5.5/ajv.bundle.js"></script>
+        <script src="https://unpkg.com/vue-json-schema-form"></script>
+
+        <!-- Our stuff -->
         <script type="text/javascript" src="js/local_settings.js"></script> <!-- Make your own, it's being ignored by GIT -->
         <script type="text/javascript" src="js/utils.js"></script>
         <script type="text/javascript" src="js/client.js"></script>
         
     </head>
     <body>
-        <div>This is a testbed for the DSS and Weather microservices</div>
+        <div>This is a testbed for the DSS and Weather microservices<div>
         <div id="app">
-            <h2>List of DSS models</h2>
-            <ul class="DSSModelListItem">
-                <template v-for="DSS in DSSList">
-                <li v-for="DSS_model in DSS.DSS_models" v-on:click="currentModel = DSS_model; renderNamesFromEPPOCodes(DSS_model); currentModelVisible = true">{{DSS_model.DSS_model_name}}</li>
-                </template>
-            </ul>
+            <h2 class="title">List of DSS models</h2>
+            <div class="content">
+              <ul class="DSSModelListItem">
+                  <template v-for="DSS in DSSList">
+                  <li v-for="DSS_model in DSS.DSS_models" v-on:click="handleModelSelect(DSS_model);/*currentModel = DSS_model; renderNamesFromEPPOCodes(DSS_model); theFormSchema = JSON.parse(currentModel.How_to_run.Input_schema); addWeatherDataSchema(theFormSchema, weatherDataSchema); currentModelVisible = true;*/">{{DSS_model.DSS_model_name}}</li>
+                  </template>
+              </ul>
+            </div>
             <div v-if="currentModelVisible">
                 <h2>{{ currentModel.DSS_model_name }}</h2>
                 <h3>Description</h3>
-                <div id='cropsAndPests'></div>
+                <div id="cropsAndPests"></div>
                 <p>{{currentModel.Description}}</p>
                 <p><a :href="currentModel.Description_URL" target="new">Read more </a></p>
-                <div id="runModelForm"></div>
+                <schema-form v-model="formData" :schema="theFormSchema" @submit="displayData" />
+                
             </div>
+            <div id="runModelForm"></div>
+            <h2>Weather data sources</h2>
+            <ul>
+                <li v-for="wds in weatherDataSourceList">{{wds.Datasource_name}}</li>
+            </ul>
         </div>
-
+        <div id="test"></div>
         <h3>TODO: Be able to formulate a weather data request. Get a response from a datasource</h3>
 
-        
+        <hr/>
+        <p>Some possibly usable Json Schema APIs</p>
+        <ul>
+          <li><a href="https://gitlab.com/formschema/native">https://gitlab.com/formschema/native</a></li>
+          <li><a href="https://crickford.github.io/vue-json-schema-form/">https://crickford.github.io/vue-json-schema-form/</a></li>
+          <li><a href="http://alpacajs.org/">Alpaca Forms [CURRENTLY SELECTED ON THIS PAGE]</a></li>
+        </ul>
     </body>
     <script type="text/javascript">
-       init();
+    init();
     </script>
 </html>

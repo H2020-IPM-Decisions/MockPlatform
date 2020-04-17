@@ -21,47 +21,91 @@ var EPPO_TAXON_WEB_ENDPOINT = "https://gd.eppo.int/taxon/";
 
 
 function init (){
+    Vue.use(VueJsonSchemaForm.default);
+    
     var app = new Vue({
         el:"#app",
         data: {
-            DSSList : [],
-            currentModel : {},
-            currentModelVisible : false
+            DSSList: [],
+            weatherDataSourceList: [],
+            currentModel: {},
+            currentModelVisible: false,
+            theFormSchema: null,
+            weatherDataSchema: null,
+            formData: {}
         },
         methods: {
-            renderNamesFromEPPOCodes:renderNamesFromEPPOCodes
+            renderNamesFromEPPOCodes:renderNamesFromEPPOCodes,
+//            renderRunModelForm: renderRunModelForm,
+            handleModelSelect(selectedDSSModel){
+                this.currentModel = selectedDSSModel; 
+                this.theFormSchema = JSON.parse(this.currentModel.How_to_run.Input_schema); 
+                this.theFormSchema.properties.weatherData = this.weatherDataSchema;
+                this.currentModelVisible = true;
+                renderNamesFromEPPOCodes(this.currentModel);
+            },
+            displayData: function(){
+                console.info(JSON.stringify(this.formData));
+            }
         },
         created(){
             fetch(DSSServiceHost + "/rest/list")
             .then(response => response.json())
             .then(json=>{
-                console.info(json);
                 this.DSSList = json;
-            })
+            });
+            fetch(WeatherServiceHost + "/rest/weatherdatasource/list")
+            .then(response => response.json())
+            .then(json=>{
+                //console.info(json);
+                this.weatherDataSourceList = json.Datasources;
+            });
+            fetch("https://ipmdecisions.nibio.no/WeatherService/rest/schema/weatherdata")
+            .then(response => response.json())
+            .then(json=>{
+                this.weatherDataSchema = json
+            });
         }
     });
 }
 
 
 var weatherDataSources; // Keeping datasources in memory
+var EPPORestAPIURL = "https://data.eppo.int/api/rest/1.0/";
+
 
 /**
- * Fetches weather datasource info from backend
- * @returns void
+ * Using Alpaca forms for this: http://alpacajs.org/
+ * @param {Object} DSSModel 
  */
-var getWeatherDataSources = function(){
-    ajax(WeatherServiceHost + "/rest/weatherdatasource/list", function(e){
-        weatherDataSources = JSON.parse(e.target.responseText);
-        console.info(weatherDataSources);
+var renderRunModelForm = function(DSSModel)
+{
+    //console.info(DSSModel.How_to_run.Input_schema);
+    var formSchema = JSON.parse(DSSModel.How_to_run.Input_schema);
+    //console.info(formSchema);
+    document.getElementById("runModelForm").innerHTML = "";
+    $("#runModelForm").alpaca({
+        "schema": formSchema,
+        "options": {
+            "form": {
+                "attributes": {
+                    "action": DSSModel.How_to_run.Endpoint,
+                    "method": DSSModel.How_to_run.Form_method,
+                    "enctype": DSSModel.How_to_run.Content_type,
+                    "onclick": "console.info(\"BLABLA\");return false"
+                },
+                "buttons": {
+                    "submit": {}
+                }
+            }
+        },
+        "view": "web-edit"
     });
-};
-
-
-var EPPORestAPIURL = "https://data.eppo.int/api/rest/1.0/";
+}
 
 /**
  * 
- * @param {String[]} EPPOCodes
+ * @param {Object} DSSModel
  * @returns {undefined}
  */
 var renderNamesFromEPPOCodes = function(DSSModel)
@@ -111,8 +155,9 @@ var renderNamesFromEPPOCodes = function(DSSModel)
             pestItems.push("<a href=\"" + EPPO_TAXON_WEB_ENDPOINT + DSSModel.Pests[i]+ "\" target=\"new\">" + getEPPOName(retVal[DSSModel.Pests[i]],LANGUAGE) + "</a>");
         }
         html += pestItems.join(", ");
+        
         document.getElementById("cropsAndPests").innerHTML = html;
-        //console.info(retVal);
+        
     });
     
     
@@ -120,7 +165,7 @@ var renderNamesFromEPPOCodes = function(DSSModel)
 
 var getEPPOName = function(nameInfo, language)
 {
-    console.info(nameInfo);
+    //console.info(nameInfo);
     for(var i=0;i<nameInfo.length;i++)
     {
         if(nameInfo[i].isolang === language)
