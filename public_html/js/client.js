@@ -30,22 +30,181 @@ function init (){
             weatherDataSourceList: [],
             currentModel: {},
             currentModelVisible: false,
+            currentDataSource: {},
+            currentDataSourceVisible: false,
+            showResults: false,
             theFormSchema: null,
             weatherDataSchema: null,
-            formData: {}
+            formData: {},
+            dataSourceSpatialInfo: null,
+            latitude: null,
+            longitude: null,
+            altitude: null,
+            selectedWeatherStationId: null,
+            weatherData: null,
+            resultsData: [],
+            resultsColumns: [
+                
+            ]
         },
         methods: {
             renderNamesFromEPPOCodes:renderNamesFromEPPOCodes,
 //            renderRunModelForm: renderRunModelForm,
             handleModelSelect(selectedDSSModel){
+                this.showResults=false;
                 this.currentModel = selectedDSSModel; 
                 this.theFormSchema = JSON.parse(this.currentModel.How_to_run.Input_schema); 
-                this.theFormSchema.properties.weatherData = this.weatherDataSchema;
+                this.theFormSchema.properties.weatherData = false; // Needs rewriting!
+                //this.theFormSchema.properties.weatherData = this.weatherDataSchema; // This needs rerwriting
                 this.currentModelVisible = true;
                 renderNamesFromEPPOCodes(this.currentModel);
             },
+            handleWeatherDataSourceSelect(selectedDataSource){
+                this.currentDataSource = selectedDataSource;
+                
+                var dataSourceSpatialInfoTmp = JSON.parse(this.currentDataSource.Spatial);
+                // Sort stations alphabetically
+                if(this.currentDataSource.Access_type=='stations')
+                {
+                    dataSourceSpatialInfoTmp.features.sort(function(a,b){
+                        return a.properties.name > b.properties.name ? 1 : -1;
+                    });
+                }
+                this.dataSourceSpatialInfo = dataSourceSpatialInfoTmp;
+                // If the resource is gridded, the Spatial property is a polygon
+                // Otherwise, it's a FeatureCollection of points and this means it's a list of weather stations
+                this.currentDataSourceVisible = true;
+            },
             displayData: function(){
+                console.info(this.formData);
                 console.info(JSON.stringify(this.formData));
+            },
+            submitData: function(){
+                
+                //
+                //this.displayData();
+                
+                // Get weather data first
+                // Which parameters, period, station etc
+                var locationIdentifier = this.currentDataSource.Access_type == "grid" ?
+                    "&latitude=" + this.latitude + "&longitude=" + this.longitude + "&altitude=" + this.altitude
+                    :"&stationId=" + this.selectedWeatherStationId;
+                // TODO make sure we get proper timezone aware timestamps from the form
+                // Use local time zone (browser based) for now. Should use user's time zone defined in platform normally?
+                var timeStart=moment.tz(this.formData.configParameters.timeStart, this.formData.configParameters.timeZone).format().replace("+","%2B");
+                //console.info(moment.tz(this.formData.configParameters.timeStart, this.formData.configParameters.timeZone).format());
+                var timeEnd=moment.tz(this.formData.configParameters.timeEnd, this.formData.configParameters.timeZone).format().replace("+","%2B");
+                var interval= this.currentModel.Input.Weather[0].interval; // TODO get from model
+                var parameters = [];
+                for(var i=0;i<this.currentModel.Input.Weather.length;i++)
+                {
+                    parameters.push(this.currentModel.Input.Weather[i].parameter_code);
+                }
+                //console.info(locationIdentifier);
+                fetch(this.currentDataSource.Endpoint 
+                    + "?timeStart=" + timeStart 
+                    + "&timeEnd=" + timeEnd 
+                    + "&interval=" + interval 
+                    + "&weatherStationId=" + this.selectedWeatherStationId
+                    + "&parameters=" + parameters.join(","),
+                {
+                    method: "GET",
+                    mode: "cors",
+                    cache: "no-cache",
+                    credentials: "same-origin",
+                    redirect: 'follow',
+                    referrerPolicy: 'no-referrer'
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    this.weatherData = data;
+                    this.formData.weatherData = this.weatherData;
+                    serializedFormData = JSON.stringify(this.formData);
+                    return fetch(this.currentModel.How_to_run.Endpoint, {
+                        method: "POST",
+                        mode: "cors",
+                        cache: "no-cache",
+                        credentials: "same-origin",
+                        headers: {
+                            "Content-type": "application/json; charset=utf-8"
+                        },
+                        redirect: 'follow',
+                        referrerPolicy: 'no-referrer',
+                        body: serializedFormData
+                    })
+                    .then((response) => response.json())
+                    .then((data) => {console.info(data);this.renderResults(data);})
+                    .then()
+                    .catch((error) => console.error("Error:", error));
+                    
+                });
+
+                
+            },
+            renderResults: function(resultList){
+                this.resultsData = [];
+                this.resultsColumns = [
+                    {field: "validTimeStart", label:"Time"},
+                    {field: "warningStatus", label:"Warning status"}
+                ];
+                var allKeys = JSON.parse(resultList[0].keys);
+                for(var i in allKeys)
+                {
+                    var fieldKey = allKeys[i].split(".")[allKeys[i].split(".").length - 1];
+                    this.resultsColumns.push({ field:fieldKey, label:allKeys[i] });
+                }
+                resultList.reverse();
+                for(var j in resultList)
+                {
+                    var resultLine = resultList[j];
+                    var resultOut = {};
+                    resultOut["validTimeStart"] = moment.tz(resultLine.validTimeStart, this.formData.configParameters.timeZone).format();
+                    resultOut["warningStatus"] = resultLine.warningStatus;
+                        
+                    var allResultsFromLine = JSON.parse(resultLine.allValues);
+                    //console.info(allResultsFromLine);
+                    for(var i in allKeys)
+                    {
+                        var fieldKey = allKeys[i].split(".")[allKeys[i].split(".").length - 1];
+                        resultOut[fieldKey] = allResultsFromLine[allKeys[i]];
+                    }
+                    
+                    //console.info(resultOut);
+                    this.resultsData.push(resultOut);
+                }
+                this.showResults=true;
+            }
+            ,
+            testGetWeatherData: function() {
+                // Get weather data first
+                // Which parameters, period, station etc
+                var locationIdentifier = this.currentDataSource.Access_type == "grid" ?
+                    "&latitude=" + this.latitude + "&longitude=" + this.longitude + "&altitude=" + this.altitude
+                    :"&stationId=" + this.selectedWeatherStationId;
+                // TODO make sure we get proper timezone aware timestamps from the form
+                var timeStart=encodeURIComponent("2020-04-01T00:00:00+02:00");
+                var timeEnd=encodeURIComponent("2020-04-30T00:00:00+02:00");
+                var interval=3600; // TODO get from form
+                var parameters=[1002]
+                console.info(locationIdentifier);
+                fetch(this.currentDataSource.Endpoint 
+                    + "?timeStart=" + timeStart 
+                    + "&timeEnd=" + timeEnd 
+                    + "&interval=" + interval 
+                    + "&weatherStationId=" + this.selectedWeatherStationId
+                    + "&parameters=" + parameters.join(","),
+                {
+                    method: "GET",
+                    mode: "cors",
+                    cache: "no-cache",
+                    credentials: "same-origin",
+                    redirect: 'follow',
+                    referrerPolicy: 'no-referrer'
+                })
+                .then((response) => response.json())
+                .then((data) => {this.weatherData = data;});
+                
+                
             }
         },
         created(){
