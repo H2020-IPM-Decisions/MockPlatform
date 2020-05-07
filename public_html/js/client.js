@@ -28,6 +28,7 @@ function init (){
         data: {
             DSSList: [],
             weatherDataSourceList: [],
+            weatherParameterList: {},
             currentModel: {},
             currentModelVisible: false,
             currentDataSource: {},
@@ -219,10 +220,23 @@ function init (){
                 //console.info(json);
                 this.weatherDataSourceList = json.Datasources;
             });
-            fetch("https://ipmdecisions.nibio.no/WeatherService/rest/schema/weatherdata")
+            fetch(WeatherServiceHost + "/rest/schema/weatherdata")
             .then(response => response.json())
             .then(json=>{
                 this.weatherDataSchema = json
+            });
+
+            fetch(WeatherServiceHost + "/rest/parameter/list")
+            .then(response => response.json())
+            .then(json=>{
+                //console.info(json);
+                for(var i in json.parameters)
+                {
+                    var param = json.parameters[i];
+                    //console.info(param);
+                    this.weatherParameterList[param.id] = param;
+                }
+                //console.info(this.weatherParameterList);
             });
         }
     });

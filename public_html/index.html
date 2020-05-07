@@ -26,10 +26,11 @@
         <!-- vue.js -->
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
         
-        <!-- vue-json-schema-form and dependencies (Buefy and AJV) -->
+        <!-- vue-json-schema-form and dependencies (Buefy, AJV and materialdesigns) -->
         <link rel="stylesheet" href="js/vue-json-schema-form-master/dist/vue-json-schema-form.css"/>
         <link rel="stylesheet" href="https://unpkg.com/buefy/dist/buefy.min.css"/>
         <script src="https://unpkg.com/buefy/dist/buefy.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.materialdesignicons.com/2.5.94/css/materialdesignicons.min.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/6.5.5/ajv.bundle.js"></script>
         <script src="https://unpkg.com/vue-json-schema-form"></script>
 
@@ -45,29 +46,41 @@
     </head>
     <body>
         <div class="mockHeader">
-            <h1 class="title">MockPlatform</h1>
+            <h1 class="title is-1">MockPlatform</h1>
             <p>This is a testbed for the DSS and Weather microservices</p>
         </div>
 
-        <div id="app">
-            <h2 class="title">Weather data sources</h2>
-            <div class="content">
-                <ul class="clickableList">
-                    <li v-for="wds in weatherDataSourceList" v-on:click="handleWeatherDataSourceSelect(wds);">{{wds.Datasource_name}}</li>
-                </ul>
-            </div>
-            <div v-if="currentDataSourceVisible" class="dataSourceView">
-                <h3 class="subtitle">{{currentDataSource.Datasource_name}}</h3>
-                <p><a :href="currentDataSource.Public_URL" target="new">Public URL</a></p>
-                <p>DESCRIPTION: {{currentDataSource.Description}}</p>
-                <p>PROVIDES HISTORICAL DATA? <span v-if="currentDataSource.Temporal[0]!=0">Yes</span><span v-else>No</span></p>
-                <p>PROVIDES FORECAST DATA? <span v-if="currentDataSource.Temporal[1]!=0">Yes, {{currentDataSource.Temporal[1]}} day(s) ahead</span><span v-else>No</span></p>
+        <div id="app" class="container">
+            <section class="container">
+                <h2 class="subtitle is-2">Weather data sources</h2>
+                <div class="content">
+                    <ul class="clickableList">
+                        <li v-for="wds in weatherDataSourceList" v-on:click="handleWeatherDataSourceSelect(wds);">{{wds.Datasource_name}}</li>
+                    </ul>
+                </div>
+            </section>
+            <section v-if="currentDataSourceVisible" class="dataSourceView container">
+                <h3 class="subtitle is-3">{{currentDataSource.Datasource_name}}</h3>
+                <table class="table">
+                    <tbody>
+                        <tr><th>Public URL</th><td colspan="2"><a :href="currentDataSource.Public_URL" target="new">{{currentDataSource.Public_URL}}</a></td></tr>
+                        <tr><th>Description</th><td colspan="2">{{currentDataSource.Description}}</td></tr>
+                        <tr><th>Provides historical data?</th><td colspan="2"><template v-if="currentDataSource.Temporal.Historic.start!=null">Yes, from {{currentDataSource.Temporal.Historic.start}} and until <template v-if="currentDataSource.Temporal.Historic.end!=null"></template><template v-else>now</template></template><template v-else>No</template></td></tr>
+                        <tr><th>Provides forecast data?</th><td colspan="2"><template v-if="currentDataSource.Temporal.Forecast!=0">Yes, {{currentDataSource.Temporal.Forecast}} day(s) ahead</template><template v-else>No</template></td></tr>
+                        <tr><th>Needs data control?</th><td colspan="2"><template v-if="currentDataSource.Needs_data_control">Yes</template><template v-else>No</template></td></tr>
+                        <tr><th>Available parameters</th><th>Code</th><th>Description</th></tr>
+                        <tr v-if="currentDataSource.Parameters.Optional != null"><th>Available for all locations</th><td colspan="2"></td></tr>
+                        <tr v-for="paramCode in currentDataSource.Parameters.Common"><th></th><td>{{paramCode}}</td><td>{{weatherParameterList[paramCode].name}} ({{weatherParameterList[paramCode].unit}})</td></tr>
+                        <tr v-if="currentDataSource.Parameters.Optional != null"><th>Available for some locations</th><td colspan="2"></td></tr>
+                        <tr v-for="paramCode in currentDataSource.Parameters.Optional"><th></th><td>{{paramCode}}</td><td>{{weatherParameterList[paramCode].name}} ({{weatherParameterList[paramCode].unit}})</td></tr>
+                    </tbody>
+                </table>
                 <template v-if="currentDataSource.Access_type=='stations'">
                     <h4 class="subtitle">Select from weather stations</h4>
                     <select v-model="selectedWeatherStationId">
                         <option v-for="feature in this.dataSourceSpatialInfo.features" :value="feature.properties.id">{{feature.properties.name}}</option>
                     </select>
-                    <p>(This could also be a map, all stations have coordinates)</p>
+                    <p>(This could also be a map, all stations are listed as GeoJson)</p>
                 </template>
                 <template v-else>
                     <h4 class="subtitle">Select from position (latitude, longitude, altitude)</h4>
@@ -78,8 +91,9 @@
                         Altitude (meters) <input type="number" step="1" min="-431" v-model="altitude"/> 
                     </p>
                 </template>
-            </div>
-            <h2 class="title">DSS models</h2>
+            </section>
+            <section class="container">
+            <h2 class="subtitle is-2">DSS models</h2>
             <div class="content">
               <ul class="clickableList">
                   <template v-for="DSS in DSSList">
@@ -87,22 +101,25 @@
                   </template>
               </ul>
             </div>
-            <div v-if="currentModelVisible" class="modelView">
-                <h3 class="title">{{ currentModel.DSS_model_name }}</h3>
-                <h4 class="subtitle">Description</h4>
-                <div id="cropsAndPests"></div>
-                <p>{{currentModel.Description}}</p>
-                <p><a :href="currentModel.Description_URL" target="new">Read more </a></p>
-                <schema-form v-model="formData" :schema="theFormSchema" @submit="submitData" />
-            </div>
-            <div id="runModelForm"></div>
+            </section>
+            <section class="container">
+                <div v-if="currentModelVisible" class="modelView">
+                    <h3 class="subtitle is-3">{{ currentModel.DSS_model_name }}</h3>
+                    <h4 class="subtitle is-4">Description</h4>
+                    <div id="cropsAndPests"></div>
+                    <p>{{currentModel.Description}}</p>
+                    <p><a :href="currentModel.Description_URL" target="new">Read more </a></p>
+                    <schema-form v-model="formData" :schema="theFormSchema" @submit="submitData" />
+                </div>
+                
+                <div id="runModelForm"></div>
+            </section>
             
-            
-            <div v-if="showResults">
+            <section v-if="showResults" class="container">
                 <h2 class="title">Model results for {{ currentModel.DSS_model_name }}</h2>
                 <p>These are for now VIPS Result objects - TODO: Create IPM Decisions result object</p>
                 <b-table :data="resultsData" :columns="resultsColumns"></b-table>
-            </div>
+            </section>
         </div>
        
     <script type="text/javascript">
