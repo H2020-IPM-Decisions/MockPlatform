@@ -54,7 +54,7 @@ function init (){
             handleModelSelect(selectedDSSModel){
                 this.showResults=false;
                 this.currentModel = selectedDSSModel; 
-                this.theFormSchema = JSON.parse(this.currentModel.How_to_run.Input_schema); 
+                this.theFormSchema = JSON.parse(this.currentModel.execution.input_schema); 
                 this.theFormSchema.properties.weatherData = false; // Needs rewriting!
                 //this.theFormSchema.properties.weatherData = this.weatherDataSchema; // This needs rerwriting
                 this.currentModelVisible = true;
@@ -95,11 +95,11 @@ function init (){
                 var timeStart=moment.tz(this.formData.configParameters.timeStart, this.formData.configParameters.timeZone).format().replace("+","%2B");
                 //console.info(moment.tz(this.formData.configParameters.timeStart, this.formData.configParameters.timeZone).format());
                 var timeEnd=moment.tz(this.formData.configParameters.timeEnd, this.formData.configParameters.timeZone).format().replace("+","%2B");
-                var interval= this.currentModel.Input.Weather[0].interval; // TODO get from model
+                var interval= this.currentModel.input.weather[0].interval; // TODO get from model
                 var parameters = [];
-                for(var i=0;i<this.currentModel.Input.Weather.length;i++)
+                for(var i=0;i<this.currentModel.input.weather.length;i++)
                 {
-                    parameters.push(this.currentModel.Input.Weather[i].parameter_code);
+                    parameters.push(this.currentModel.input.weather[i].parameter_code);
                 }
                 //console.info(locationIdentifier);
                 fetch(this.currentDataSource.Endpoint 
@@ -121,7 +121,7 @@ function init (){
                     this.weatherData = data;
                     this.formData.weatherData = this.weatherData;
                     serializedFormData = JSON.stringify(this.formData);
-                    return fetch(this.currentModel.How_to_run.Endpoint, {
+                    return fetch(this.currentModel.execution.endpoint, {
                         method: "POST",
                         mode: "cors",
                         cache: "no-cache",
@@ -247,34 +247,6 @@ var weatherDataSources; // Keeping datasources in memory
 var EPPORestAPIURL = "https://data.eppo.int/api/rest/1.0/";
 
 
-/**
- * Using Alpaca forms for this: http://alpacajs.org/
- * @param {Object} DSSModel 
- */
-var renderRunModelForm = function(DSSModel)
-{
-    //console.info(DSSModel.How_to_run.Input_schema);
-    var formSchema = JSON.parse(DSSModel.How_to_run.Input_schema);
-    //console.info(formSchema);
-    document.getElementById("runModelForm").innerHTML = "";
-    $("#runModelForm").alpaca({
-        "schema": formSchema,
-        "options": {
-            "form": {
-                "attributes": {
-                    "action": DSSModel.How_to_run.Endpoint,
-                    "method": DSSModel.How_to_run.Form_method,
-                    "enctype": DSSModel.How_to_run.Content_type,
-                    "onclick": "console.info(\"BLABLA\");return false"
-                },
-                "buttons": {
-                    "submit": {}
-                }
-            }
-        },
-        "view": "web-edit"
-    });
-}
 
 /**
  * 
@@ -283,7 +255,7 @@ var renderRunModelForm = function(DSSModel)
  */
 var renderNamesFromEPPOCodes = function(DSSModel)
 {
-    var EPPOCodes = DSSModel.Pests.concat(DSSModel.Crops)
+    var EPPOCodes = DSSModel.pests.concat(DSSModel.crops)
     var promises = [];
     for(var i=0;i<EPPOCodes.length;i++)
     {
@@ -315,17 +287,17 @@ var renderNamesFromEPPOCodes = function(DSSModel)
 
         var html = "<p><strong>Crops:</strong> ";
         var cropItems = [];
-        for(var i=0;i<DSSModel.Crops.length;i++)
+        for(var i=0;i<DSSModel.crops.length;i++)
         {
-            cropItems.push("<a href=\"" + EPPO_TAXON_WEB_ENDPOINT  + DSSModel.Crops[i]+ "\" target=\"new\">" + getEPPOName(retVal[DSSModel.Crops[i]],LANGUAGE) + "</a>");
+            cropItems.push("<a href=\"" + EPPO_TAXON_WEB_ENDPOINT  + DSSModel.crops[i]+ "\" target=\"new\">" + getEPPOName(retVal[DSSModel.crops[i]],LANGUAGE) + "</a>");
         }
         html += cropItems.join(", ");
         
         html +="</p><p><strong>Pests: </strong>";
         var pestItems = [];
-        for(var i=0;i<DSSModel.Pests.length;i++)
+        for(var i=0;i<DSSModel.pests.length;i++)
         {
-            pestItems.push("<a href=\"" + EPPO_TAXON_WEB_ENDPOINT + DSSModel.Pests[i]+ "\" target=\"new\">" + getEPPOName(retVal[DSSModel.Pests[i]],LANGUAGE) + "</a>");
+            pestItems.push("<a href=\"" + EPPO_TAXON_WEB_ENDPOINT + DSSModel.pests[i]+ "\" target=\"new\">" + getEPPOName(retVal[DSSModel.pests[i]],LANGUAGE) + "</a>");
         }
         html += pestItems.join(", ");
         

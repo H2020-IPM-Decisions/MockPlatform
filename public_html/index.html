@@ -97,18 +97,18 @@
             <div class="content">
               <ul class="clickableList">
                   <template v-for="DSS in DSSList">
-                  <li v-for="DSS_model in DSS.DSS_models" v-on:click="handleModelSelect(DSS_model);">{{DSS_model.DSS_model_name}}</li>
+                  <li v-for="model in DSS.models" v-on:click="handleModelSelect(model);">{{model.name}}</li>
                   </template>
               </ul>
             </div>
             </section>
             <section class="container">
                 <div v-if="currentModelVisible" class="modelView">
-                    <h3 class="subtitle is-3">{{ currentModel.DSS_model_name }}</h3>
+                    <h3 class="subtitle is-3">{{ currentModel.name }}</h3>
                     <h4 class="subtitle is-4">Description</h4>
                     <div id="cropsAndPests"></div>
-                    <p>{{currentModel.Description}}</p>
-                    <p><a :href="currentModel.Description_URL" target="new">Read more </a></p>
+                    <p>{{currentModel.description}}</p>
+                    <p><a :href="currentModel.description_URL" target="new">Read more </a></p>
                     <schema-form v-model="formData" :schema="theFormSchema" @submit="submitData" />
                 </div>
                 
@@ -116,7 +116,7 @@
             </section>
             
             <section v-if="showResults" class="container">
-                <h2 class="title">Model results for {{ currentModel.DSS_model_name }}</h2>
+                <h2 class="title">Model results for {{ currentModel.name }}</h2>
                 <p>These are for now VIPS Result objects - TODO: Create IPM Decisions result object</p>
                 <b-table :data="resultsData" :columns="resultsColumns"></b-table>
             </section>
