@@ -36,6 +36,7 @@ function init (){
             showResults: false,
             theFormSchema: null,
             weatherDataSchema: null,
+            fieldObservationSchema: null,
             formData: {},
             dataSourceSpatialInfo: null,
             latitude: null,
@@ -50,7 +51,6 @@ function init (){
         },
         methods: {
             renderNamesFromEPPOCodes:renderNamesFromEPPOCodes,
-//            renderRunModelForm: renderRunModelForm,
             handleModelSelect(selectedDSSModel){
                 this.showResults=false;
                 this.currentModel = selectedDSSModel; 
@@ -225,7 +225,11 @@ function init (){
             .then(json=>{
                 this.weatherDataSchema = json
             });
-
+            fetch(DSSServiceHost + "/rest/schema/fieldobservation")
+            .then(response => response.json())
+            .then(json=>{
+                this.fieldObservationSchema = json
+            });
             fetch(WeatherServiceHost + "/rest/parameter/list")
             .then(response => response.json())
             .then(json=>{
