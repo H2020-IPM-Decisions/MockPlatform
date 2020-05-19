@@ -27,5 +27,7 @@ var DSSServiceHost = "http://dss.foo.bar/";
 var WeatherServiceHost = "http://weather.foo.bar/";
 var EPPO_AUTHTOKEN = "foobar1234567890"; // Get your own account by signup at https://data.eppo.int
 var LANGUAGE ="en"; // For EPPO (and maybe more?)
+// Reference to the field Observation schema
+var fieldObservationsSchemaRef = "https://ipmdecisions.nibio.no/dss/rest/schema/fieldobservation";
 
 
