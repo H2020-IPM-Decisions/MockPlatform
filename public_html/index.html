@@ -57,7 +57,7 @@
                 <h2 class="subtitle is-2">Weather data sources</h2>
                 <div class="content">
                     <ul class="clickableList">
-                        <li v-for="wds in weatherDataSourceList" v-on:click="handleWeatherDataSourceSelect(wds);">{{wds.Datasource_name}}</li>
+                        <li v-for="wds in weatherDataSourceList" v-on:click="handleWeatherDataSourceSelect(wds);">{{wds.name}}</li>
                     </ul>
                 </div>
             </section>
@@ -65,19 +65,19 @@
                 <h3 class="subtitle is-3">{{currentDataSource.Datasource_name}}</h3>
                 <table class="table">
                     <tbody>
-                        <tr><th>Public URL</th><td colspan="2"><a :href="currentDataSource.Public_URL" target="new">{{currentDataSource.Public_URL}}</a></td></tr>
-                        <tr><th>Description</th><td colspan="2">{{currentDataSource.Description}}</td></tr>
-                        <tr><th>Provides historical data?</th><td colspan="2"><template v-if="currentDataSource.Temporal.Historic.start!=null">Yes, from {{currentDataSource.Temporal.Historic.start}} and until <template v-if="currentDataSource.Temporal.Historic.end!=null"></template><template v-else>now</template></template><template v-else>No</template></td></tr>
-                        <tr><th>Provides forecast data?</th><td colspan="2"><template v-if="currentDataSource.Temporal.Forecast!=0">Yes, {{currentDataSource.Temporal.Forecast}} day(s) ahead</template><template v-else>No</template></td></tr>
-                        <tr><th>Needs data control?</th><td colspan="2"><template v-if="currentDataSource.Needs_data_control">Yes</template><template v-else>No</template></td></tr>
+                        <tr><th>Public URL</th><td colspan="2"><a :href="currentDataSource.public_URL" target="new">{{currentDataSource.public_URL}}</a></td></tr>
+                        <tr><th>Description</th><td colspan="2">{{currentDataSource.description}}</td></tr>
+                        <tr><th>Provides historical data?</th><td colspan="2"><template v-if="currentDataSource.temporal.historic.start!=null">Yes, from {{currentDataSource.temporal.historic.start}} and until <template v-if="currentDataSource.temporal.historic.end!=null"></template><template v-else>now</template></template><template v-else>No</template></td></tr>
+                        <tr><th>Provides forecast data?</th><td colspan="2"><template v-if="currentDataSource.temporal.forecast!=0">Yes, {{currentDataSource.temporal.forecast}} day(s) ahead</template><template v-else>No</template></td></tr>
+                        <tr><th>Needs data control?</th><td colspan="2"><template v-if="currentDataSource.needs_data_control">Yes</template><template v-else>No</template></td></tr>
                         <tr><th>Available parameters</th><th>Code</th><th>Description</th></tr>
-                        <tr v-if="currentDataSource.Parameters.Optional != null"><th>Available for all locations</th><td colspan="2"></td></tr>
-                        <tr v-for="paramCode in currentDataSource.Parameters.Common"><th></th><td>{{paramCode}}</td><td>{{weatherParameterList[paramCode].name}} ({{weatherParameterList[paramCode].unit}})</td></tr>
-                        <tr v-if="currentDataSource.Parameters.Optional != null"><th>Available for some locations</th><td colspan="2"></td></tr>
-                        <tr v-for="paramCode in currentDataSource.Parameters.Optional"><th></th><td>{{paramCode}}</td><td>{{weatherParameterList[paramCode].name}} ({{weatherParameterList[paramCode].unit}})</td></tr>
+                        <tr v-if="currentDataSource.parameters.optional != null"><th>Available for all locations</th><td colspan="2"></td></tr>
+                        <tr v-for="paramCode in currentDataSource.parameters.common"><th></th><td>{{paramCode}}</td><td>{{weatherParameterList[paramCode].name}} ({{weatherParameterList[paramCode].unit}})</td></tr>
+                        <tr v-if="currentDataSource.parameters.optional != null"><th>Available for some locations</th><td colspan="2"></td></tr>
+                        <tr v-for="paramCode in currentDataSource.parameters.optional"><th></th><td>{{paramCode}}</td><td>{{weatherParameterList[paramCode].name}} ({{weatherParameterList[paramCode].unit}})</td></tr>
                     </tbody>
                 </table>
-                <template v-if="currentDataSource.Access_type=='stations'">
+                <template v-if="currentDataSource.access_type=='stations'">
                     <h4 class="subtitle">Select from weather stations</h4>
                     <select v-model="selectedWeatherStationId">
                         <option v-for="feature in this.dataSourceSpatialInfo.features" :value="feature.properties.id">{{feature.properties.name}}</option>

@@ -56,16 +56,39 @@ function init (){
                 this.currentModel = selectedDSSModel; 
                 this.theFormSchema = JSON.parse(this.currentModel.execution.input_schema); 
                 this.theFormSchema.properties.weatherData = false; // Needs rewriting!
-                //this.theFormSchema.properties.weatherData = this.weatherDataSchema; // This needs rerwriting
+                //this.theFormSchema.properties.weatherData = this.weatherDataSchema; // This needs rewriting
+                // Inspect the form schema. Does it refer to the field observation schema? In that case, add it to the 
+                // schema node
+                this.checkForFieldObservationSchema(this.theFormSchema);
                 this.currentModelVisible = true;
                 renderNamesFromEPPOCodes(this.currentModel);
+            },
+            checkForFieldObservationSchema(schemaNode){
+                for(var key in schemaNode)
+                {
+                    if(key == "$ref" && schemaNode[key] == fieldObservationsSchemaRef)
+                    {
+                        // We have to postpone the assigment due to JavaScript's
+                        // rules for pass-by-reference/value
+                        // See: https://stackoverflow.com/questions/13104494/does-javascript-pass-by-reference 
+                        return true;
+                    }
+                    if(typeof schemaNode[key] === "object")
+                    {
+                        if(this.checkForFieldObservationSchema(schemaNode[key]))
+                        {
+                            schemaNode[key] = this.fieldObservationSchema;
+                        }
+                    }
+                }
+                return false;
             },
             handleWeatherDataSourceSelect(selectedDataSource){
                 this.currentDataSource = selectedDataSource;
                 
-                var dataSourceSpatialInfoTmp = JSON.parse(this.currentDataSource.Spatial);
+                var dataSourceSpatialInfoTmp = JSON.parse(this.currentDataSource.spatial);
                 // Sort stations alphabetically
-                if(this.currentDataSource.Access_type=='stations')
+                if(this.currentDataSource.access_type=='stations')
                 {
                     dataSourceSpatialInfoTmp.features.sort(function(a,b){
                         return a.properties.name > b.properties.name ? 1 : -1;
@@ -218,7 +241,7 @@ function init (){
             .then(response => response.json())
             .then(json=>{
                 //console.info(json);
-                this.weatherDataSourceList = json.Datasources;
+                this.weatherDataSourceList = json.datasources;
             });
             fetch(WeatherServiceHost + "/rest/schema/weatherdata")
             .then(response => response.json())
@@ -234,9 +257,9 @@ function init (){
             .then(response => response.json())
             .then(json=>{
                 //console.info(json);
-                for(var i in json.parameters)
+                for(var i in json)
                 {
-                    var param = json.parameters[i];
+                    var param = json[i];
                     //console.info(param);
                     this.weatherParameterList[param.id] = param;
                 }
