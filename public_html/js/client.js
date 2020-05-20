@@ -157,7 +157,10 @@ function init (){
                         body: serializedFormData
                     })
                     .then((response) => response.json())
-                    .then((data) => {console.info(data);this.renderResults(data);})
+                    .then((data) => {
+                        //console.info(data);
+                        this.renderResults(data);
+                    })
                     .then()
                     .catch((error) => console.error("Error:", error));
                     
