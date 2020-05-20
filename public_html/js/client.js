@@ -110,7 +110,7 @@ function init (){
                 
                 // Get weather data first
                 // Which parameters, period, station etc
-                var locationIdentifier = this.currentDataSource.Access_type == "grid" ?
+                var locationIdentifier = this.currentDataSource.access_type == "grid" ?
                     "&latitude=" + this.latitude + "&longitude=" + this.longitude + "&altitude=" + this.altitude
                     :"&stationId=" + this.selectedWeatherStationId;
                 // TODO make sure we get proper timezone aware timestamps from the form
@@ -125,7 +125,7 @@ function init (){
                     parameters.push(this.currentModel.input.weather[i].parameter_code);
                 }
                 //console.info(locationIdentifier);
-                fetch(this.currentDataSource.Endpoint 
+                fetch(this.currentDataSource.endpoint 
                     + "?timeStart=" + timeStart 
                     + "&timeEnd=" + timeEnd 
                     + "&interval=" + interval 
@@ -241,7 +241,7 @@ function init (){
             .then(response => response.json())
             .then(json=>{
                 //console.info(json);
-                this.weatherDataSourceList = json.datasources;
+                this.weatherDataSourceList = json;
             });
             fetch(WeatherServiceHost + "/rest/schema/weatherdata")
             .then(response => response.json())
