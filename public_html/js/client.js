@@ -86,7 +86,7 @@ function init (){
             handleWeatherDataSourceSelect(selectedDataSource){
                 this.currentDataSource = selectedDataSource;
                 
-                var dataSourceSpatialInfoTmp = JSON.parse(this.currentDataSource.spatial);
+                var dataSourceSpatialInfoTmp = JSON.parse(this.currentDataSource.spatial.geoJSON);
                 // Sort stations alphabetically
                 if(this.currentDataSource.access_type=='stations')
                 {
@@ -168,32 +168,41 @@ function init (){
 
                 
             },
-            renderResults: function(resultList){
+            renderResults: function(modelOutput){
                 this.resultsData = [];
                 this.resultsColumns = [
                     {field: "validTimeStart", label:"Time"},
-                    {field: "warningStatus", label:"Warning status"}
+                    {field: "WARNING_STATUS", label:"Warning status"}
                 ];
-                var allKeys = JSON.parse(resultList[0].keys);
-                for(var i in allKeys)
+                var allKeys = modelOutput.resultParameters;
+                for(var i=0;i<allKeys.length;i++)
                 {
-                    var fieldKey = allKeys[i].split(".")[allKeys[i].split(".").length - 1];
-                    this.resultsColumns.push({ field:fieldKey, label:allKeys[i] });
-                }
-                resultList.reverse();
-                for(var j in resultList)
-                {
-                    var resultLine = resultList[j];
-                    var resultOut = {};
-                    resultOut["validTimeStart"] = moment.tz(resultLine.validTimeStart, this.formData.configParameters.timeZone).format();
-                    resultOut["warningStatus"] = resultLine.warningStatus;
-                        
-                    var allResultsFromLine = JSON.parse(resultLine.allValues);
-                    //console.info(allResultsFromLine);
-                    for(var i in allKeys)
+                    if(allKeys[i] != "WARNING_STATUS")
                     {
-                        var fieldKey = allKeys[i].split(".")[allKeys[i].split(".").length - 1];
-                        resultOut[fieldKey] = allResultsFromLine[allKeys[i]];
+                        //var fieldKey = allKeys[i].split(".")[allKeys[i].split(".").length - 1];
+                        this.resultsColumns.push({ field:allKeys[i], label:allKeys[i] });
+                    }
+                }
+                var timeStart = moment(modelOutput.timeStart);
+                for(var j=modelOutput.locationResult[0].data.length -1; j>=0; j--)
+                {
+                    var resultLine = modelOutput.locationResult[0].data[j];
+                    // Time stamp is calculated based on start time of time series and interval
+                    var currentTimeStamp = moment(modelOutput.timeStart).add(j * modelOutput.interval,'seconds');
+                    var resultOut = {};
+                    resultOut["validTimeStart"] = moment.tz(currentTimeStamp, this.formData.configParameters.timeZone).format();
+                   
+                    for(var i=0;i<allKeys.length;i++)
+                    {
+                        if(allKeys[i] != "WARNING_STATUS")
+                        {
+                            resultOut[allKeys[i]] = resultLine[i];
+                            
+                        }
+                        else{
+                            //var fieldKey = allKeys[i].split(".")[allKeys[i].split(".").length - 1];
+                            resultOut["WARNING_STATUS"] = resultLine[i];
+                        }
                     }
                     
                     //console.info(resultOut);
