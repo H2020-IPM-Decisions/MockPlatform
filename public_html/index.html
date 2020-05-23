@@ -119,7 +119,7 @@
             
             <section v-if="showResults" class="container">
                 <h2 class="title">Model results for {{ currentModel.name }}</h2>
-                <p>The schema is defined here: https://ipmdecisions.nibio.no/schemas/dss_model_output.json</p>
+                <p>The schema is defined here: https://ipmdecisions.nibio.no/dss/rest/schema/modeloutput</p>
                 <b-table :data="resultsData" :columns="resultsColumns"></b-table>
             </section>
         </div>
