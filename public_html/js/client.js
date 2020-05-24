@@ -110,9 +110,9 @@ function init (){
                 
                 // Get weather data first
                 // Which parameters, period, station etc
-                var locationIdentifier = this.currentDataSource.access_type == "grid" ?
+                var locationIdentifier = this.currentDataSource.access_type == "location" ?
                     "&latitude=" + this.latitude + "&longitude=" + this.longitude + "&altitude=" + this.altitude
-                    :"&stationId=" + this.selectedWeatherStationId;
+                    :"&weatherStationId=" + this.selectedWeatherStationId;
                 // TODO make sure we get proper timezone aware timestamps from the form
                 // Use local time zone (browser based) for now. Should use user's time zone defined in platform normally?
                 var timeStart=moment.tz(this.formData.configParameters.timeStart, this.formData.configParameters.timeZone).format().replace("+","%2B");
@@ -129,7 +129,8 @@ function init (){
                     + "?timeStart=" + timeStart 
                     + "&timeEnd=" + timeEnd 
                     + "&interval=" + interval 
-                    + "&weatherStationId=" + this.selectedWeatherStationId
+                    //+ "&weatherStationId=" + this.selectedWeatherStationId
+                    + locationIdentifier
                     + "&parameters=" + parameters.join(","),
                 {
                     method: "GET",
@@ -244,7 +245,7 @@ function init (){
             }
         },
         created(){
-            fetch(DSSServiceHost + "/rest/list")
+            fetch(DSSServiceHost + "/rest/dss")
             .then(response => response.json())
             .then(json=>{
                 this.DSSList = json;
