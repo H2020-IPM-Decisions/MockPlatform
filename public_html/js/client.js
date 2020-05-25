@@ -250,7 +250,7 @@ function init (){
             .then(json=>{
                 this.DSSList = json;
             });
-            fetch(WeatherServiceHost + "/rest/weatherdatasource/list")
+            fetch(WeatherServiceHost + "/rest/weatherdatasource")
             .then(response => response.json())
             .then(json=>{
                 //console.info(json);
@@ -266,7 +266,7 @@ function init (){
             .then(json=>{
                 this.fieldObservationSchema = json
             });
-            fetch(WeatherServiceHost + "/rest/parameter/list")
+            fetch(WeatherServiceHost + "/rest/parameter")
             .then(response => response.json())
             .then(json=>{
                 //console.info(json);
