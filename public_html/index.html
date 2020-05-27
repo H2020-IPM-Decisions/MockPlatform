@@ -66,6 +66,7 @@
                 <table class="table">
                     <tbody>
                         <tr><th>Public URL</th><td colspan="2"><a :href="currentDataSource.public_URL" target="new">{{currentDataSource.public_URL}}</a></td></tr>
+                        <tr><th>Organization</th><td colspan="2"><a :href="currentDataSource.organization.url" target="new">{{currentDataSource.organization.name}}</a></td></tr>
                         <tr><th>Description</th><td colspan="2">{{currentDataSource.description}}</td></tr>
                         <tr><th>Provides historical data?</th><td colspan="2"><template v-if="currentDataSource.temporal.historic.start!=null">Yes, from {{currentDataSource.temporal.historic.start}} and until <template v-if="currentDataSource.temporal.historic.end!=null"></template><template v-else>now</template></template><template v-else>No</template></td></tr>
                         <tr><th>Provides forecast data?</th><td colspan="2"><template v-if="currentDataSource.temporal.forecast!=0">Yes, {{currentDataSource.temporal.forecast}} day(s) ahead</template><template v-else>No</template></td></tr>
